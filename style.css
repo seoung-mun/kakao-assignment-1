@@ -1,0 +1,654 @@
+/* ============================================================
+   Todo App — style.css
+   Design System: Minimalist Productivity App
+   Primary Accent: #672be0
+   ============================================================ */
+
+/* === CSS Custom Properties (Design Tokens) === */
+:root {
+  /* — Primary palette — */
+  --color-primary: #672be0;
+  --color-primary-light: #8b5cf6;
+  --color-primary-dark: #5521b5;
+  --color-primary-subtle: rgba(103, 43, 224, 0.08);
+  --color-primary-glow: rgba(103, 43, 224, 0.25);
+
+  /* — Neutrals — */
+  --color-bg: #f4f2f7;
+  --color-surface: #ffffff;
+  --color-surface-hover: #faf8ff;
+  --color-text-primary: #1a1225;
+  --color-text-secondary: #6b6178;
+  --color-text-muted: #9e95a9;
+  --color-border: #e8e3ef;
+  --color-border-focus: var(--color-primary);
+
+  /* — Semantics — */
+  --color-danger: #e53e3e;
+  --color-danger-subtle: rgba(229, 62, 62, 0.08);
+  --color-success: #38a169;
+  --color-success-subtle: rgba(56, 161, 105, 0.08);
+  --color-warning: #f6ad55;
+
+  /* — Shadows — */
+  --shadow-sm: 0 1px 3px rgba(26, 18, 37, 0.04), 0 1px 2px rgba(26, 18, 37, 0.06);
+  --shadow-md: 0 4px 12px rgba(26, 18, 37, 0.06), 0 2px 6px rgba(26, 18, 37, 0.04);
+  --shadow-lg: 0 10px 30px rgba(26, 18, 37, 0.08), 0 4px 12px rgba(26, 18, 37, 0.04);
+  --shadow-glow: 0 0 0 3px var(--color-primary-glow);
+
+  /* — Typography — */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* — Spacing & Sizing — */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* — Transitions — */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-spring: 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+
+/* === Reset & Base === */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-family);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 20px 60px;
+
+  /* 부드러운 배경 그라디언트 */
+  background-image:
+    radial-gradient(ellipse at 20% 0%, rgba(103, 43, 224, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 0%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  outline: none;
+}
+
+input {
+  font-family: inherit;
+  border: none;
+  outline: none;
+  background: none;
+}
+
+ul {
+  list-style: none;
+}
+
+
+/* ============================================================
+   APP CONTAINER
+   ============================================================ */
+.app-container {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.app-header {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  border-radius: var(--radius-xl);
+  padding: 32px 28px 24px;
+  color: #ffffff;
+  box-shadow: var(--shadow-lg), 0 4px 20px rgba(103, 43, 224, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 장식용 배경 도형 */
+.app-header::before {
+  content: '';
+  position: absolute;
+  top: -30px;
+  right: -30px;
+  width: 120px;
+  height: 120px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.app-header::after {
+  content: '';
+  position: absolute;
+  bottom: -20px;
+  left: 40%;
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.header-content {
+  position: relative;
+  z-index: 1;
+}
+
+.header-icon {
+  font-size: 28px;
+  margin-bottom: 4px;
+  opacity: 0.9;
+}
+
+.header-title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-bottom: 2px;
+}
+
+.header-subtitle {
+  font-size: 14px;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+/* — 통계 바 — */
+.header-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  position: relative;
+  z-index: 1;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.stat-number {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+
+/* ============================================================
+   INPUT SECTION
+   ============================================================ */
+.input-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 4px 4px 4px 20px;
+  box-shadow: var(--shadow-sm);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.input-wrapper:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md), var(--shadow-glow);
+  transform: translateY(-1px);
+}
+
+/* 에러 상태 */
+.input-wrapper.has-error {
+  border-color: var(--color-danger);
+  box-shadow: var(--shadow-sm), 0 0 0 3px rgba(229, 62, 62, 0.15);
+  animation: shake 0.4s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+.todo-input {
+  flex: 1;
+  height: 48px;
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--color-text-primary);
+}
+
+.todo-input::placeholder {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.add-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  color: #ffffff;
+  flex-shrink: 0;
+  transition:
+    transform var(--transition-spring),
+    box-shadow var(--transition-fast),
+    opacity var(--transition-fast);
+}
+
+.add-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(103, 43, 224, 0.3);
+}
+
+.add-button:active {
+  transform: scale(0.95);
+}
+
+/* — 에러 메시지 — */
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-danger);
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition:
+    opacity var(--transition-normal),
+    max-height var(--transition-normal),
+    padding var(--transition-normal);
+}
+
+.error-message.visible {
+  opacity: 1;
+  max-height: 40px;
+  padding: 10px 16px 0;
+}
+
+
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.empty-state.hidden {
+  display: none;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.6;
+}
+
+.empty-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+}
+
+.empty-subtext {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+
+/* ============================================================
+   TODO LIST
+   ============================================================ */
+.todo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+
+/* ============================================================
+   TODO ITEM
+   ============================================================ */
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast),
+    border-color var(--transition-fast),
+    opacity var(--transition-normal);
+
+  /* 등장 애니메이션 */
+  animation: slideIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.todo-item:hover {
+  border-color: var(--color-primary-glow);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+/* — 완료 상태 — */
+.todo-item.completed {
+  opacity: 0.6;
+  background: var(--color-surface-hover);
+}
+
+.todo-item.completed .todo-text {
+  text-decoration: line-through;
+  color: var(--color-text-muted);
+}
+
+.todo-item.completed .complete-button {
+  background: var(--color-success);
+  border-color: var(--color-success);
+  color: #ffffff;
+}
+
+/* — 수정 중 상태 — */
+.todo-item.editing {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md), var(--shadow-glow);
+}
+
+/* — 삭제 애니메이션 — */
+.todo-item.removing {
+  animation: slideOut 0.3s ease-in forwards;
+}
+
+@keyframes slideOut {
+  to {
+    opacity: 0;
+    transform: translateX(30px) scale(0.95);
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    border-width: 0;
+  }
+}
+
+
+/* — 완료 버튼 (체크 원) — */
+.complete-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  background: transparent;
+  color: transparent;
+  flex-shrink: 0;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-spring);
+}
+
+.complete-button:hover {
+  border-color: var(--color-success);
+  color: var(--color-success);
+  transform: scale(1.1);
+}
+
+.complete-button:active {
+  transform: scale(0.9);
+}
+
+/* — Todo 텍스트 — */
+.todo-text {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 450;
+  color: var(--color-text-primary);
+  line-height: 1.4;
+  word-break: break-word;
+  transition: color var(--transition-fast);
+}
+
+/* — 수정 입력창 — */
+.edit-input {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 450;
+  color: var(--color-text-primary);
+  line-height: 1.4;
+  padding: 4px 8px;
+  border-bottom: 2px solid var(--color-primary);
+  background: transparent;
+  display: none;
+}
+
+.todo-item.editing .todo-text {
+  display: none;
+}
+
+.todo-item.editing .edit-input {
+  display: block;
+}
+
+/* — 액션 버튼 그룹 — */
+.todo-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transform: translateX(4px);
+  transition:
+    opacity var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.todo-item:hover .todo-actions,
+.todo-item.editing .todo-actions {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* 개별 액션 버튼 공통 */
+.action-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-spring);
+}
+
+.action-button:hover {
+  transform: scale(1.1);
+}
+
+.action-button:active {
+  transform: scale(0.9);
+}
+
+/* 수정 버튼 */
+.edit-button:hover {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+}
+
+/* 저장 버튼 */
+.save-button {
+  display: none;
+}
+
+.save-button:hover {
+  background: var(--color-success-subtle);
+  color: var(--color-success);
+}
+
+.todo-item.editing .edit-button {
+  display: none;
+}
+
+.todo-item.editing .save-button {
+  display: flex;
+}
+
+/* 취소 버튼 (수정 모드에서만 표시) */
+.cancel-button {
+  display: none;
+}
+
+.cancel-button:hover {
+  background: var(--color-danger-subtle);
+  color: var(--color-danger);
+}
+
+.todo-item.editing .cancel-button {
+  display: flex;
+}
+
+/* 삭제 버튼 */
+.delete-button:hover {
+  background: var(--color-danger-subtle);
+  color: var(--color-danger);
+}
+
+.todo-item.editing .delete-button {
+  display: none;
+}
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 480px) {
+  body {
+    padding: 20px 12px 40px;
+  }
+
+  .app-header {
+    padding: 24px 20px 20px;
+    border-radius: var(--radius-lg);
+  }
+
+  .header-title {
+    font-size: 24px;
+  }
+
+  .header-stats {
+    gap: 14px;
+  }
+
+  .stat-number {
+    font-size: 18px;
+  }
+
+  .input-wrapper {
+    padding-left: 14px;
+    border-radius: var(--radius-md);
+  }
+
+  .todo-input {
+    height: 42px;
+    font-size: 14px;
+  }
+
+  .add-button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .todo-item {
+    padding: 12px 14px;
+  }
+
+  /* 모바일에서는 항상 액션 버튼 표시 */
+  .todo-actions {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
