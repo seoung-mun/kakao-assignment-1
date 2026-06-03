@@ -16,6 +16,19 @@ const emptyStateElement = document.getElementById('empty-state');
 const statTotalElement = document.getElementById('stat-total');
 const statCompletedElement = document.getElementById('stat-completed');
 const statRemainingElement = document.getElementById('stat-remaining');
+// [추가] 필터 버튼 부모 컨테이너 캐싱: 이벤트 위임(Event Delegation)을 걸어 단 하나의 click 리스너로 탭 전환을 조작하기 위해 캐싱해 둡니다.
+const filterContainerElement = document.getElementById('filter-container');
+
+// 날짜 내비게이션 엘리먼트 캐싱
+const currentDateTextElement = document.getElementById('current-date-text');
+const prevDateBtnElement = document.getElementById('prev-date-btn');
+const nextDateBtnElement = document.getElementById('next-date-btn');
+const todayBtnElement = document.getElementById('today-btn');
+
+// 달력 팝오버 관련 캐싱
+const dateDisplayWrapperElement = document.getElementById('date-display-wrapper');
+const dateDisplayTriggerElement = document.getElementById('date-display-trigger');
+const calendarPopoverElement = document.getElementById('calendar-popover');
 
 
 // ============================================================
@@ -51,6 +64,12 @@ function saveTodosToStorage(todoList) {
 // — 앱의 중앙 상태: Todo 아이템 배열 —
 // 각 아이템 구조: { id: number, text: string, isCompleted: boolean, createdAt: string }
 let applicationState = loadTodosFromStorage();
+// [추가] 현재 뷰에 걸려있는 필터링 전역 상태 변수: 'all'(전체) | 'active'(진행중) | 'completed'(완료)
+let currentFilter = 'all';
+// 현재 선택된 일간 뷰 날짜 객체
+let currentSelectedDate = new Date();
+// 달력 팝오버 내부에서 현재 뷰잉 중인 년/월을 가리키는 날짜 객체
+let calendarTargetDate = new Date();
 
 
 // ============================================================
@@ -83,6 +102,228 @@ function escapeHtmlEntities(unsafeText) {
   return unsafeText.replace(/[&<>"']/g, (char) => escapeMap[char]);
 }
 
+/**
+ * getFormattedDateString
+ * Date 객체를 받아 YYYY-MM-DD 형식의 문자열을 반환한다.
+ * @param {Date} dateObj - 변환할 Date 객체
+ * @returns {string} YYYY-MM-DD 형식 문자열
+ */
+function getFormattedDateString(dateObj) {
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * getKoreanDisplayDate
+ * Date 객체를 받아 한국어 포맷(예: 2026년 6월 3일 수요일)으로 반환한다.
+ * @param {Date} dateObj - 변환할 Date 객체
+ * @returns {string} 한국어 표시용 날짜 문자열
+ */
+function getKoreanDisplayDate(dateObj) {
+  const daysOfWeek = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+  const year = dateObj.getFullYear();
+  const month = dateObj.getMonth() + 1;
+  const day = dateObj.getDate();
+  const dayName = daysOfWeek[dateObj.getDay()];
+  return `${year}년 ${month}월 ${day}일 ${dayName}`;
+}
+
+/**
+ * migrateLegacyTodos
+ * 기존 Todo 데이터에 date 필드가 없는 경우, createdAt을 파싱하여 기본 날짜값을 채워넣는다.
+ * @param {Array} todoList - 마이그레이션할 Todo 리스트
+ * @returns {Array} 마이그레이션 완료된 Todo 리스트
+ */
+function migrateLegacyTodos(todoList) {
+  let isMigrated = false;
+  const migrated = todoList.map((todo) => {
+    if (!todo.date) {
+      isMigrated = true;
+      // createdAt이 있으면 그것을 기반으로 date 문자열 생성, 없으면 현재 날짜로 기본값 설정
+      const createdDate = todo.createdAt ? new Date(todo.createdAt) : new Date();
+      return {
+        ...todo,
+        date: getFormattedDateString(createdDate)
+      };
+    }
+    return todo;
+  });
+
+  if (isMigrated) {
+    saveTodosToStorage(migrated);
+  }
+  return migrated;
+}
+
+/**
+ * renderCalendar
+ * calendarTargetDate의 년/월 정보를 기준으로 calendarPopoverElement 내부에 캘린더 UI를 렌더링한다.
+ */
+function renderCalendar() {
+  const year = calendarTargetDate.getFullYear();
+  const month = calendarTargetDate.getMonth(); // 0-indexed
+
+  // 1일의 요일 알아내기
+  const firstDayIndex = new Date(year, month, 1).getDay();
+  // 이번 달의 총 일수
+  const totalDays = new Date(year, month + 1, 0).getDate();
+  // 지난 달의 총 일수
+  const prevMonthTotalDays = new Date(year, month, 0).getDate();
+
+  // 7x6 그리드를 채우기 위한 셀 데이터 배열 생성
+  const cells = [];
+
+  // 이전 달의 남은 날짜 채우기
+  for (let i = firstDayIndex - 1; i >= 0; i--) {
+    cells.push({
+      date: new Date(year, month - 1, prevMonthTotalDays - i),
+      isOtherMonth: true
+    });
+  }
+
+  // 이번 달 날짜 채우기
+  for (let i = 1; i <= totalDays; i++) {
+    cells.push({
+      date: new Date(year, month, i),
+      isOtherMonth: false
+    });
+  }
+
+  // 다음 달 초반 날짜 채우기 (그리드 42칸을 다 채울 때까지)
+  const remainingCells = 42 - cells.length;
+  for (let i = 1; i <= remainingCells; i++) {
+    cells.push({
+      date: new Date(year, month + 1, i),
+      isOtherMonth: true
+    });
+  }
+
+  // 마크업 조립
+  let calendarHtml = `
+    <!-- 캘린더 헤더: 년/월 정보 및 이전/다음 달 이동 -->
+    <div class="calendar-header">
+      <button class="calendar-nav-btn" id="cal-prev-month-btn" aria-label="이전 달">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M10 12L4 8L10 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <span class="calendar-title">${year}년 ${month + 1}월</span>
+      <button class="calendar-nav-btn" id="cal-next-month-btn" aria-label="다음 달">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M6 4L12 8L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- 요일 헤더 -->
+    <div class="calendar-days-header">
+      <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+    </div>
+
+    <!-- 날짜 그리드 -->
+    <div class="calendar-grid">
+  `;
+
+  const todayStr = getFormattedDateString(new Date());
+  const selectedStr = getFormattedDateString(currentSelectedDate);
+
+  cells.forEach((cell) => {
+    const cellDateStr = getFormattedDateString(cell.date);
+    let classes = ['calendar-cell'];
+
+    if (cell.isOtherMonth) {
+      classes.push('other-month');
+    }
+    if (cellDateStr === todayStr) {
+      classes.push('today');
+    }
+    if (cellDateStr === selectedStr) {
+      classes.push('selected');
+    }
+
+    calendarHtml += `
+      <div 
+        class="${classes.join(' ')}" 
+        data-date="${cellDateStr}"
+        role="gridcell"
+      >
+        ${cell.date.getDate()}
+      </div>
+    `;
+  });
+
+  calendarHtml += `
+    </div>
+
+    <!-- 하단 영역 (오늘 이동) -->
+    <div class="calendar-footer">
+      <span class="calendar-today-btn" id="cal-today-shortcut">오늘로 이동</span>
+    </div>
+  `;
+
+  calendarPopoverElement.innerHTML = calendarHtml;
+
+  // 이벤트 바인딩
+  // 1. 이전/다음 달 이동
+  calendarPopoverElement.querySelector('#cal-prev-month-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    calendarTargetDate.setMonth(calendarTargetDate.getMonth() - 1);
+    renderCalendar();
+  });
+
+  calendarPopoverElement.querySelector('#cal-next-month-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    calendarTargetDate.setMonth(calendarTargetDate.getMonth() + 1);
+    renderCalendar();
+  });
+
+  // 2. 오늘 단축키 클릭
+  calendarPopoverElement.querySelector('#cal-today-shortcut').addEventListener('click', (e) => {
+    e.stopPropagation();
+    currentSelectedDate = new Date();
+    calendarTargetDate = new Date();
+    renderCalendar();
+    renderTodoList();
+    closeCalendar();
+  });
+
+  // 3. 날짜 그리드 내 날짜 클릭
+  calendarPopoverElement.querySelector('.calendar-grid').addEventListener('click', (e) => {
+    const cell = e.target.closest('.calendar-cell');
+    if (!cell) return;
+    
+    e.stopPropagation();
+    const dateStr = cell.dataset.date;
+    currentSelectedDate = new Date(dateStr);
+    renderTodoList();
+    closeCalendar();
+  });
+}
+
+/**
+ * openCalendar
+ * 달력 팝오버를 열고 내부 상태를 현재 선택 날짜 기준으로 초기화한다.
+ */
+function openCalendar() {
+  calendarTargetDate = new Date(currentSelectedDate);
+  renderCalendar();
+  calendarPopoverElement.classList.remove('hidden');
+  dateDisplayWrapperElement.classList.add('open');
+  dateDisplayTriggerElement.setAttribute('aria-expanded', 'true');
+}
+
+/**
+ * closeCalendar
+ * 달력 팝오버를 닫는다.
+ */
+function closeCalendar() {
+  calendarPopoverElement.classList.add('hidden');
+  dateDisplayWrapperElement.classList.remove('open');
+  dateDisplayTriggerElement.setAttribute('aria-expanded', 'false');
+}
+
 
 // ============================================================
 // UI 렌더링 (Rendering)
@@ -98,21 +339,57 @@ function renderTodoList() {
   // 리스트 영역 초기화
   todoListElement.innerHTML = '';
 
-  // 빈 상태 표시 토글
-  if (applicationState.length === 0) {
+  // 날짜 내비게이션 텍스트 표시 업데이트
+  currentDateTextElement.textContent = getKoreanDisplayDate(currentSelectedDate);
+
+  // 1. 현재 선택된 날짜(currentSelectedDate)의 문자열과 매칭되는 Todo만 1차로 걸러냅니다.
+  const targetDateStr = getFormattedDateString(currentSelectedDate);
+  const dailyTodos = applicationState.filter((todoItem) => todoItem.date === targetDateStr);
+
+  // 2. [동적 필터 데이터 흐름] 현재 전역 필터값(currentFilter)에 부합하는 일감 목록만 filter()로 걸러냅니다.
+  const filteredTodos = dailyTodos.filter((todoItem) => {
+    if (currentFilter === 'active') return !todoItem.isCompleted; // 완료되지 않은 할 일만 반환
+    if (currentFilter === 'completed') return todoItem.isCompleted; // 완료된 할 일만 반환
+    return true; // 전체('all') 상태일 땐 전부 반환
+  });
+
+  // 3. [빈 화면 분기 흐름] 현재 선택된 필터에 맞춰 걸러진 Todo가 0개이면 빈 화면 안내판(Empty State)을 띄우고 전용 텍스트를 업데이트합니다.
+  if (filteredTodos.length === 0) {
     emptyStateElement.classList.remove('hidden');
+    updateEmptyStateMessage();
   } else {
     emptyStateElement.classList.add('hidden');
   }
 
-  // 각 Todo 아이템을 역순 없이 순서대로 렌더링 (최신이 위로 오도록 상태 관리 시 unshift 사용)
-  applicationState.forEach((todoItem) => {
+  // 4. 가공된 필터링 목록만 화면에 렌더링
+  filteredTodos.forEach((todoItem) => {
     const listItemElement = createTodoItemElement(todoItem);
     todoListElement.appendChild(listItemElement);
   });
 
-  // 통계 업데이트
-  updateStatistics();
+  // 5. 현재 날짜의 Todo 목록(dailyTodos)을 기반으로 통계 업데이트
+  updateStatistics(dailyTodos);
+}
+
+/**
+ * updateEmptyStateMessage
+ * [UX 디테일 설계] 현재 선택된 필터 탭에 알맞게 빈 상태(Empty State)의 안내 문구를 최적화하여 
+ * 유저가 빈 화면을 마주했을 때 겪을 수 있는 어색함을 상냥한 안내 문구로 완화합니다.
+ */
+function updateEmptyStateMessage() {
+  const emptyTextElement = emptyStateElement.querySelector('.empty-text');
+  const emptySubtextElement = emptyStateElement.querySelector('.empty-subtext');
+
+  if (currentFilter === 'active') {
+    emptyTextElement.textContent = '진행 중인 할 일이 없습니다';
+    emptySubtextElement.textContent = '남은 하루도 파이팅하세요!';
+  } else if (currentFilter === 'completed') {
+    emptyTextElement.textContent = '완료한 할 일이 없습니다';
+    emptySubtextElement.textContent = '차근차근 하나씩 완료해 보세요!';
+  } else {
+    emptyTextElement.textContent = '아직 할 일이 없습니다';
+    emptySubtextElement.textContent = '위에서 새로운 할 일을 추가해보세요!';
+  }
 }
 
 /**
@@ -194,9 +471,9 @@ function createTodoItemElement(todoItem) {
  * updateStatistics
  * 헤더의 통계 숫자(전체, 완료, 남은 할 일)를 현재 상태 기반으로 업데이트한다.
  */
-function updateStatistics() {
-  const totalCount = applicationState.length;
-  const completedCount = applicationState.filter((item) => item.isCompleted).length;
+function updateStatistics(todoList = applicationState) {
+  const totalCount = todoList.length;
+  const completedCount = todoList.filter((item) => item.isCompleted).length;
   const remainingCount = totalCount - completedCount;
 
   // 숫자 변경 시 바운스 애니메이션 적용
@@ -250,6 +527,7 @@ function addNewTodo(inputText) {
     id: generateUniqueId(),
     text: trimmedText,
     isCompleted: false,
+    date: getFormattedDateString(currentSelectedDate),
     createdAt: new Date().toISOString()
   };
 
@@ -523,8 +801,79 @@ todoListElement.addEventListener('keydown', (keyEvent) => {
 });
 
 
+/**
+ * 필터 탭 이벤트 위임 (Event Delegation)
+ * - 3개 탭 버튼에 각각 리스너를 달지 않고, 상위 컨테이너인 filterContainerElement에 click 리스너 1개만 바인딩했습니다.
+ * - 사용자가 탭을 클릭하면 브라우저 버블링으로 감지한 뒤 dataset.filter 속성으로 클릭한 필터 상태를 판독합니다.
+ */
+filterContainerElement.addEventListener('click', (clickEvent) => {
+  const tabButton = clickEvent.target.closest('.filter-tab');
+  if (!tabButton) return;
+
+  // 1. [상태 변경] 전역 필터 변수 값 갱신
+  currentFilter = tabButton.dataset.filter;
+
+  // 2. [클래스 조작] 모든 탭 버튼에서 active를 떼고, 오직 클릭된 버튼 엘리먼트에만 active를 추가합니다.
+  filterContainerElement.querySelectorAll('.filter-tab').forEach((btn) => {
+    btn.classList.toggle('active', btn === tabButton);
+  });
+
+  // [리렌더링 작동 흐름] 변경된 필터 데이터 가공을 거쳐 화면을 동기화 리플래시합니다.
+  renderTodoList();
+});
+
+// 날짜 내비게이션 이전/다음 이동 이벤트 핸들러 바인딩
+prevDateBtnElement.addEventListener('click', () => {
+  currentSelectedDate.setDate(currentSelectedDate.getDate() - 1);
+  renderTodoList();
+  closeCalendar();
+});
+
+nextDateBtnElement.addEventListener('click', () => {
+  currentSelectedDate.setDate(currentSelectedDate.getDate() + 1);
+  renderTodoList();
+  closeCalendar();
+});
+
+// 오늘 배지 버튼 클릭 시 (달력 토글 방지를 위해 stopPropagation 처리)
+todayBtnElement.addEventListener('click', (event) => {
+  event.stopPropagation();
+  currentSelectedDate = new Date();
+  renderTodoList();
+  closeCalendar();
+});
+
+// 날짜 표시 영역 클릭 시 달력 토글
+dateDisplayTriggerElement.addEventListener('click', (event) => {
+  // 만약 클릭된 곳이 오늘 배지라면 여기서 처리하지 않음
+  if (event.target === todayBtnElement) return;
+  
+  const isHidden = calendarPopoverElement.classList.contains('hidden');
+  if (isHidden) {
+    openCalendar();
+  } else {
+    closeCalendar();
+  }
+});
+
+// 달력 팝오버 외부 클릭 시 닫기
+document.addEventListener('click', (event) => {
+  const isClickInside = dateDisplayWrapperElement.contains(event.target);
+  if (!isClickInside) {
+    closeCalendar();
+  }
+});
+
+// ESC 키 클릭 시 달력 닫기
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') {
+    closeCalendar();
+  }
+});
+
 // ============================================================
 // 초기화 (Initialization)
 // — 앱 로드 시 localStorage에서 데이터를 불러와 렌더링한다
 // ============================================================
+applicationState = migrateLegacyTodos(applicationState);
 renderTodoList();
