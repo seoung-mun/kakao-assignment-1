@@ -105,6 +105,12 @@ body {
     radial-gradient(ellipse at 20% 0%, rgba(103, 43, 224, 0.03) 0%, transparent 40%);
 }
 
+#root {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
 button {
   font-family: inherit;
   cursor: pointer;

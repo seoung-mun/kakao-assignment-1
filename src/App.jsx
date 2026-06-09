@@ -2,27 +2,34 @@ import { useState } from 'react'
 import { useLocalStorageReducer } from './hooks/useLocalStorageReducer'
 import { todoReducer } from './reducers/todoReducer'
 import { TODO_ACTIONS } from './constants/actions'
+import { useCalendar } from './hooks/useCalendar'
 import Header from './components/Header'
+import DateNavigator from './components/DateNavigator'
+import CalendarPopover from './components/CalendarPopover'
 import TodoInput from './components/TodoInput'
 import FilterTabs from './components/FilterTabs'
 import TodoList from './components/TodoList'
 
-// YYYY-MM-DD 형식의 오늘 날짜 구하기 헬퍼 함수
-const getTodayDateString = () => {
-  const today = new Date()
-  const year = today.getFullYear()
-  const month = String(today.getMonth() + 1).padStart(2, '0')
-  const day = String(today.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
 export default function App() {
-  // useLocalStorageReducer 커스텀 훅을 통해 로컬스토리지 연동 및 Reducer 패턴 사용
+  // useLocalStorageReducer 커스텀 훅: 로컬스토리지 연동 및 Reducer 패턴 사용
   const [todos, dispatch] = useLocalStorageReducer('todo-app-items', todoReducer, [])
   const [currentFilter, setCurrentFilter] = useState('all')
   
-  // Phase 1 단계에서는 오늘 날짜를 기준으로 할 일을 관리합니다. (Phase 3에서 일간 내비게이터 연결 예정)
-  const [selectedDate] = useState(getTodayDateString())
+  // useCalendar 커스텀 훅: 날짜 표시, 하루 전/후 이동, 캘린더 그리드 생성 캡슐화
+  const {
+    selectedDate,
+    calendarTargetDate,
+    isCalendarOpen,
+    selectDate,
+    goToPrevDay,
+    goToNextDay,
+    goToToday,
+    closeCalendar,
+    toggleCalendar,
+    calendarPrevMonth,
+    calendarNextMonth,
+    getCalendarCells
+  } = useCalendar()
 
   // CRUD 핸들러 정의 (Action Type Enum 객체 활용)
   const handleAddTodo = (text) => {
@@ -53,6 +60,17 @@ export default function App() {
     })
   }
 
+  // 캘린더 팝오버용 날짜 변경 처리
+  const handleDateSelect = (dateStr) => {
+    selectDate(dateStr)
+    closeCalendar()
+  }
+
+  const handleTodaySelect = () => {
+    goToToday()
+    closeCalendar()
+  }
+
   // 데이터 가공 흐름: 1차 날짜 필터링 -> 2차 탭 필터링
   const dailyTodos = todos.filter(todo => todo.date === selectedDate)
   
@@ -69,12 +87,35 @@ export default function App() {
 
   return (
     <div className="app-container">
-      {/* 헤더 컴포넌트: 통계 전달 및 바운스 애니메이션 지원 */}
+      {/* 헤더 컴포넌트 */}
       <Header 
         total={totalCount} 
         completed={completedCount} 
         remaining={remainingCount} 
       />
+
+      {/* 날짜 내비게이션 영역 */}
+      <DateNavigator
+        selectedDate={selectedDate}
+        isCalendarOpen={isCalendarOpen}
+        onPrevDay={goToPrevDay}
+        onNextDay={goToNextDay}
+        onTodayClick={goToToday}
+        onToggleCalendar={toggleCalendar}
+      >
+        {/* 달력 팝오버 (Compound-like 형태로 내장하여 렌더링 위치 설정) */}
+        <CalendarPopover
+          isOpen={isCalendarOpen}
+          calendarTargetDate={calendarTargetDate}
+          cells={getCalendarCells()}
+          selectedDate={selectedDate}
+          onPrevMonth={calendarPrevMonth}
+          onNextMonth={calendarNextMonth}
+          onTodaySelect={handleTodaySelect}
+          onDateSelect={handleDateSelect}
+          onClose={closeCalendar}
+        />
+      </DateNavigator>
 
       {/* 할 일 입력창 */}
       <TodoInput onAddTodo={handleAddTodo} />

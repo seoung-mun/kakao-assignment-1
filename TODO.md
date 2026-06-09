@@ -1,12 +1,9 @@
-# TODO: Phase 1. Todo CRUD (Reducer & Action Enum 기반)
+# TODO: Phase 3. 일간 뷰 및 날짜 내비게이션 (Custom Hook 도입)
 
-- [x] `constants/actions.js` 작성 (Action Type Enum 객체 정의)
-- [x] `reducers/todoReducer.js` 작성 (Todo 추가/토글/수정/삭제 리듀서 로직)
-- [x] `hooks/useLocalStorageReducer.js` 커스텀 훅 작성 (상태 변경 시 `localStorage` 영속화 및 지연 초기화)
-- [x] `components/TodoInput.jsx` 작성 (입력 값 검증 실패 시 shake 애니메이션 및 경고 창 렌더링)
-- [x] `components/TodoList.jsx` 작성 (할 일 목록 리스트 컨테이너)
-- [x] `components/TodoItem.jsx` 작성 (인라인 에디팅 모드 및 삭제 시 `.removing` 트랜지션 처리)
-- [x] `App.jsx` 작성 (커스텀 훅 연동 및 전체 UI 조립)
+- [x] `hooks/useCalendar.js` 커스텀 훅 작성 (선택된 날짜, 달력 표시 대상 날짜, 이전/다음 달 이동 및 날짜 그리드 계산 캡슐화)
+- [x] `components/DateNavigator.jsx` 작성 (일간 이동 버튼, 오늘 복귀 배지, 날짜 표시 영역 클릭 시 달력 토글 처리)
+- [x] `components/CalendarPopover.jsx` 작성 (커스텀 7x6 달력 팝오버 렌더링 및 년/월 이동, 오늘로 이동 단축키 연동)
+- [x] `App.jsx` 작성 (커스텀 훅과 컴포넌트를 조립하여 일별 데이터 렌더링 연동)
 - [x] 로컬 빌드 및 기능 검증
 
 ---
