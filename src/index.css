@@ -797,7 +797,9 @@ ul {
 }
 
 .calendar-cell {
+  position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 34px;
@@ -810,6 +812,25 @@ ul {
     background var(--transition-fast),
     color var(--transition-fast),
     transform var(--transition-fast);
+}
+
+.calendar-cell-number {
+  line-height: 1.2;
+}
+
+.calendar-cell-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-danger);
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.calendar-cell.selected .calendar-cell-dot {
+  background: #ffffff;
 }
 
 .calendar-cell:hover {
@@ -976,3 +997,171 @@ ul {
     height: 28px;
   }
 }
+
+/* ============================================================
+   WEEKLY VIEW (주간 다이얼식 캘린더)
+   ============================================================ */
+.weekly-view-container {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.weekly-view-container:hover {
+  border-color: var(--color-primary-glow);
+}
+
+.weekly-view-header {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* 년월 타이틀 가운데 정렬 */
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+  position: relative;
+}
+
+.weekly-view-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: -0.3px;
+}
+
+.weekly-view-nav {
+  position: absolute;
+  right: 0;
+  display: flex;
+  gap: 4px;
+}
+
+.weekly-view-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
+  transition: all var(--transition-fast);
+}
+
+.weekly-view-nav-btn:hover {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  transform: scale(1.05);
+}
+
+.weekly-view-nav-btn:active {
+  transform: scale(0.95);
+}
+
+.weekly-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.weekly-day-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 4px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid transparent;
+  background: transparent;
+  transition: background var(--transition-fast);
+}
+
+.weekly-day-btn:hover {
+  background: var(--color-primary-subtle);
+}
+
+.weekly-day-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  transition: color var(--transition-fast);
+}
+
+.weekly-day-btn:hover .weekly-day-label {
+  color: var(--color-primary);
+}
+
+.weekly-day-number {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  transition: color var(--transition-fast);
+}
+
+/* 다이얼의 정가운데 선택 활성 셀 */
+.weekly-day-btn.selected {
+  background: var(--color-primary-subtle) !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: var(--shadow-sm);
+}
+
+.weekly-day-btn.selected .weekly-day-label {
+  color: var(--color-primary) !important;
+}
+
+/* 선택된 날짜 숫자는 빨간색 강조 */
+.weekly-day-btn.selected .weekly-day-number {
+  color: var(--color-danger) !important;
+}
+
+/* 오늘 날짜 하이라이트 (선택되지 않았을 때) - 테두리를 없애서 선택박스 중복 혼선 방지 */
+.weekly-day-btn.today:not(.selected) {
+  border-color: transparent;
+}
+
+.weekly-day-btn.today:not(.selected) .weekly-day-number {
+  color: var(--color-primary);
+  font-weight: 800;
+  position: relative;
+}
+
+/* 오늘 날짜 하단에 작은 보라색 점 표시로 시각화 */
+.weekly-day-btn.today:not(.selected) .weekly-day-number::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-primary);
+}
+
+/* 요일별 할 일 배지 */
+.weekly-badge {
+  position: absolute;
+  top: -6px;
+  right: -4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: var(--radius-full);
+  font-size: 9px;
+  font-weight: 700;
+  background: var(--color-danger);
+  color: #ffffff;
+  border: 1px solid #ffffff;
+  box-shadow: var(--shadow-sm);
+}
+

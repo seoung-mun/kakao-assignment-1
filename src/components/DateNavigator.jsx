@@ -9,7 +9,8 @@ export default function DateNavigator({
   onToggleCalendar,
   children 
 }) {
-  const displayDateStr = getKoreanDisplayDate(new Date(selectedDate))
+  const [year, month, day] = selectedDate.split('-').map(Number)
+  const displayDateStr = getKoreanDisplayDate(new Date(year, month - 1, day))
 
   const handleTodayClick = (e) => {
     e.stopPropagation() // 달력 팝업 토글 방지

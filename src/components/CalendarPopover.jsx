@@ -6,6 +6,7 @@ export default function CalendarPopover({
   calendarTargetDate,
   cells,
   selectedDate,
+  todos = [],
   onPrevMonth,
   onNextMonth,
   onTodaySelect,
@@ -78,7 +79,7 @@ export default function CalendarPopover({
           aria-label="다음 달"
         >
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <path d="M6 4L12 8L6 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M6 4L12 8L6 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
       </div>
@@ -95,6 +96,9 @@ export default function CalendarPopover({
           const isSelected = cellDateStr === selectedDate
           const isToday = cellDateStr === todayStr
           
+          // 해당 날짜에 완료되지 않은(진행 중인) 할 일이 존재하는지 검사
+          const hasActiveTasks = todos.some((todo) => todo.date === cellDateStr && !todo.isCompleted)
+          
           let cellClasses = 'calendar-cell'
           if (cell.isOtherMonth) cellClasses += ' other-month'
           if (isToday) cellClasses += ' today'
@@ -110,7 +114,8 @@ export default function CalendarPopover({
               }}
               role="gridcell"
             >
-              {cell.date.getDate()}
+              <span className="calendar-cell-number">{cell.date.getDate()}</span>
+              {hasActiveTasks && <span className="calendar-cell-dot"></span>}
             </div>
           )
         })}

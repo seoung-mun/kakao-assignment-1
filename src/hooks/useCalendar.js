@@ -3,18 +3,23 @@ import { getFormattedDateString } from '../utils/date'
 
 export function useCalendar(initialDateStr = getFormattedDateString(new Date())) {
   const [selectedDate, setSelectedDate] = useState(initialDateStr) // YYYY-MM-DD 형식의 문자열
-  const [calendarTargetDate, setCalendarTargetDate] = useState(new Date(initialDateStr)) // 달력 뷰 년/월을 위한 Date 객체
+  const [calendarTargetDate, setCalendarTargetDate] = useState(() => {
+    const [year, month, day] = initialDateStr.split('-').map(Number)
+    return new Date(year, month - 1, day)
+  }) // 달력 뷰 년/월을 위한 Date 객체
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
 
   // 특정 날짜 선택
   const selectDate = useCallback((dateStr) => {
     setSelectedDate(dateStr)
-    setCalendarTargetDate(new Date(dateStr))
+    const [year, month, day] = dateStr.split('-').map(Number)
+    setCalendarTargetDate(new Date(year, month - 1, day))
   }, [])
 
   // 하루 전으로 이동
   const goToPrevDay = useCallback(() => {
-    const current = new Date(selectedDate)
+    const [year, month, day] = selectedDate.split('-').map(Number)
+    const current = new Date(year, month - 1, day)
     current.setDate(current.getDate() - 1)
     const prevDateStr = getFormattedDateString(current)
     setSelectedDate(prevDateStr)
@@ -23,7 +28,8 @@ export function useCalendar(initialDateStr = getFormattedDateString(new Date()))
 
   // 하루 후로 이동
   const goToNextDay = useCallback(() => {
-    const current = new Date(selectedDate)
+    const [year, month, day] = selectedDate.split('-').map(Number)
+    const current = new Date(year, month - 1, day)
     current.setDate(current.getDate() + 1)
     const nextDateStr = getFormattedDateString(current)
     setSelectedDate(nextDateStr)
@@ -40,7 +46,8 @@ export function useCalendar(initialDateStr = getFormattedDateString(new Date()))
 
   // 달력 팝오버 열기/닫기
   const openCalendar = useCallback(() => {
-    setCalendarTargetDate(new Date(selectedDate))
+    const [year, month, day] = selectedDate.split('-').map(Number)
+    setCalendarTargetDate(new Date(year, month - 1, day))
     setIsCalendarOpen(true)
   }, [selectedDate])
 

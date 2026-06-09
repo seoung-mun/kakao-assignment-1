@@ -9,6 +9,7 @@ import CalendarPopover from './components/CalendarPopover'
 import TodoInput from './components/TodoInput'
 import FilterTabs from './components/FilterTabs'
 import TodoList from './components/TodoList'
+import WeeklyView from './components/WeeklyView'
 
 export default function App() {
   // useLocalStorageReducer 커스텀 훅: 로컬스토리지 연동 및 Reducer 패턴 사용
@@ -109,6 +110,7 @@ export default function App() {
           calendarTargetDate={calendarTargetDate}
           cells={getCalendarCells()}
           selectedDate={selectedDate}
+          todos={todos}
           onPrevMonth={calendarPrevMonth}
           onNextMonth={calendarNextMonth}
           onTodaySelect={handleTodaySelect}
@@ -116,6 +118,13 @@ export default function App() {
           onClose={closeCalendar}
         />
       </DateNavigator>
+
+      {/* 주간 캘린더 뷰 */}
+      <WeeklyView
+        selectedDate={selectedDate}
+        todos={todos}
+        onDateSelect={selectDate}
+      />
 
       {/* 할 일 입력창 */}
       <TodoInput onAddTodo={handleAddTodo} />
