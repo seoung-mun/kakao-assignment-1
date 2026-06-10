@@ -6,7 +6,7 @@ export default function CalendarPopover({
   calendarTargetDate,
   cells,
   selectedDate,
-  todos = [],
+  activeTodoCounts = {},
   onPrevMonth,
   onNextMonth,
   onTodaySelect,
@@ -97,7 +97,7 @@ export default function CalendarPopover({
           const isToday = cellDateStr === todayStr
           
           // 해당 날짜에 완료되지 않은(진행 중인) 할 일이 존재하는지 검사
-          const hasActiveTasks = todos.some((todo) => todo.date === cellDateStr && !todo.isCompleted)
+          const hasActiveTasks = (activeTodoCounts[cellDateStr] || 0) > 0
           
           let cellClasses = 'calendar-cell'
           if (cell.isOtherMonth) cellClasses += ' other-month'

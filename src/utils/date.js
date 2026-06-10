@@ -47,3 +47,44 @@ export function addDays(dateObj, days) {
   result.setDate(result.getDate() + days)
   return result
 }
+
+/**
+ * 7x6 캘린더 그리드 셀 생성 함수 (이전 달 일부, 이번 달 전체, 다음 달 일부 포함 총 42칸)
+ * @param {number} year - 연도 (4자리)
+ * @param {number} month - 월 (0-indexed, 0 ~ 11)
+ * @returns {Array<{date: Date, isOtherMonth: boolean}>} 42개의 셀 객체 배열
+ */
+export function generateCalendarGrid(year, month) {
+  const firstDayIndex = new Date(year, month, 1).getDay()
+  const totalDays = new Date(year, month + 1, 0).getDate()
+  const prevMonthTotalDays = new Date(year, month, 0).getDate()
+
+  const cells = []
+
+  // 1. 이전 달 날짜 채우기
+  for (let i = firstDayIndex - 1; i >= 0; i--) {
+    cells.push({
+      date: new Date(year, month - 1, prevMonthTotalDays - i),
+      isOtherMonth: true
+    })
+  }
+
+  // 2. 이번 달 날짜 채우기
+  for (let i = 1; i <= totalDays; i++) {
+    cells.push({
+      date: new Date(year, month, i),
+      isOtherMonth: false
+    })
+  }
+
+  // 3. 다음 달 날짜 채우기 (총 42칸 맞추기)
+  const remainingCells = 42 - cells.length
+  for (let i = 1; i <= remainingCells; i++) {
+    cells.push({
+      date: new Date(year, month + 1, i),
+      isOtherMonth: true
+    })
+  }
+
+  return cells
+}

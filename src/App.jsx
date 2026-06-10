@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useLocalStorageReducer } from './hooks/useLocalStorageReducer'
 import { todoReducer } from './reducers/todoReducer'
 import { TODO_ACTIONS } from './constants/actions'
@@ -36,7 +36,12 @@ export default function App() {
   const handleAddTodo = (text) => {
     dispatch({
       type: TODO_ACTIONS.ADD,
-      payload: { text, date: selectedDate }
+      payload: { 
+        id: Date.now() + Math.floor(Math.random() * 1000), 
+        text, 
+        date: selectedDate,
+        createdAt: new Date().toISOString()
+      }
     })
   }
 
@@ -72,27 +77,45 @@ export default function App() {
     closeCalendar()
   }
 
-  // 데이터 가공 흐름: 1차 날짜 필터링 -> 2차 탭 필터링
-  const dailyTodos = todos.filter(todo => todo.date === selectedDate)
-  
-  const filteredTodos = dailyTodos.filter(todo => {
-    if (currentFilter === 'active') return !todo.isCompleted
-    if (currentFilter === 'completed') return todo.isCompleted
-    return true
-  })
+  // 날짜별 미완료 할 일 개수를 집계하는 룩업 딕셔너리 (useMemo)
+  const activeTodoCountsByDate = useMemo(() => {
+    const counts = {}
+    todos.forEach(todo => {
+      if (!todo.isCompleted) {
+        counts[todo.date] = (counts[todo.date] || 0) + 1
+      }
+    })
+    return counts
+  }, [todos])
 
-  // 헤더 통계 계산
-  const totalCount = dailyTodos.length
-  const completedCount = dailyTodos.filter(todo => todo.isCompleted).length
-  const remainingCount = totalCount - completedCount
+  // 데이터 가공 흐름: 1차 날짜 필터링 -> 2차 탭 필터링 (useMemo로 최적화)
+  const dailyTodos = useMemo(() => {
+    return todos.filter(todo => todo.date === selectedDate)
+  }, [todos, selectedDate])
+  
+  const filteredTodos = useMemo(() => {
+    return dailyTodos.filter(todo => {
+      if (currentFilter === 'active') return !todo.isCompleted
+      if (currentFilter === 'completed') return todo.isCompleted
+      return true
+    })
+  }, [dailyTodos, currentFilter])
+
+  // 헤더 통계 계산 (useMemo로 최적화)
+  const stats = useMemo(() => {
+    const totalCount = dailyTodos.length
+    const completedCount = dailyTodos.filter(todo => todo.isCompleted).length
+    const remainingCount = totalCount - completedCount
+    return { totalCount, completedCount, remainingCount }
+  }, [dailyTodos])
 
   return (
     <div className="app-container">
       {/* 헤더 컴포넌트 */}
       <Header 
-        total={totalCount} 
-        completed={completedCount} 
-        remaining={remainingCount} 
+        total={stats.totalCount} 
+        completed={stats.completedCount} 
+        remaining={stats.remainingCount} 
       />
 
       {/* 날짜 내비게이션 영역 */}
@@ -110,7 +133,7 @@ export default function App() {
           calendarTargetDate={calendarTargetDate}
           cells={getCalendarCells()}
           selectedDate={selectedDate}
-          todos={todos}
+          activeTodoCounts={activeTodoCountsByDate}
           onPrevMonth={calendarPrevMonth}
           onNextMonth={calendarNextMonth}
           onTodaySelect={handleTodaySelect}
@@ -122,7 +145,7 @@ export default function App() {
       {/* 주간 캘린더 뷰 */}
       <WeeklyView
         selectedDate={selectedDate}
-        todos={todos}
+        activeTodoCounts={activeTodoCountsByDate}
         onDateSelect={selectDate}
       />
 

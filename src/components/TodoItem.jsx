@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, memo } from 'react'
 
-export default function TodoItem({ todo, onToggle, onUpdateText, onDelete }) {
+function TodoItem({ todo, onToggle, onUpdateText, onDelete }) {
   const [isEditing, setIsEditing] = useState(false)
   const [editText, setEditText] = useState(todo.text)
   const [isRemoving, setIsRemoving] = useState(false)
@@ -55,7 +55,10 @@ export default function TodoItem({ todo, onToggle, onUpdateText, onDelete }) {
       return
     }
 
-    onUpdateText(todo.id, trimmed)
+    // 변경사항이 있을 때만 업데이트 전파
+    if (trimmed !== todo.text) {
+      onUpdateText(todo.id, trimmed)
+    }
     setIsEditing(false)
   }
 
@@ -160,3 +163,5 @@ export default function TodoItem({ todo, onToggle, onUpdateText, onDelete }) {
     </li>
   )
 }
+
+export default memo(TodoItem)

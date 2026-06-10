@@ -3,13 +3,13 @@ import { TODO_ACTIONS } from '../constants/actions'
 export function todoReducer(state, action) {
   switch (action.type) {
     case TODO_ACTIONS.ADD: {
-      const { text, date } = action.payload
+      const { id, text, date, createdAt } = action.payload
       const newTodo = {
-        id: Date.now() + Math.floor(Math.random() * 1000),
+        id,
         text: text.trim(),
         isCompleted: false,
         date, // YYYY-MM-DD format
-        createdAt: new Date().toISOString()
+        createdAt
       }
       return [newTodo, ...state]
     }

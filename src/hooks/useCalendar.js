@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { getFormattedDateString } from '../utils/date'
+import { getFormattedDateString, generateCalendarGrid } from '../utils/date'
 
 export function useCalendar(initialDateStr = getFormattedDateString(new Date())) {
   const [selectedDate, setSelectedDate] = useState(initialDateStr) // YYYY-MM-DD 형식의 문자열
@@ -85,42 +85,7 @@ export function useCalendar(initialDateStr = getFormattedDateString(new Date()))
   const getCalendarCells = useCallback(() => {
     const year = calendarTargetDate.getFullYear()
     const month = calendarTargetDate.getMonth() // 0-indexed
-
-    // 1일의 요일 알아내기
-    const firstDayIndex = new Date(year, month, 1).getDay()
-    // 이번 달의 총 일수
-    const totalDays = new Date(year, month + 1, 0).getDate()
-    // 지난 달의 총 일수
-    const prevMonthTotalDays = new Date(year, month, 0).getDate()
-
-    const cells = []
-
-    // 1. 이전 달 날짜 채우기
-    for (let i = firstDayIndex - 1; i >= 0; i--) {
-      cells.push({
-        date: new Date(year, month - 1, prevMonthTotalDays - i),
-        isOtherMonth: true
-      })
-    }
-
-    // 2. 이번 달 날짜 채우기
-    for (let i = 1; i <= totalDays; i++) {
-      cells.push({
-        date: new Date(year, month, i),
-        isOtherMonth: false
-      })
-    }
-
-    // 3. 다음 달 날짜 채우기 (총 42칸 맞추기)
-    const remainingCells = 42 - cells.length
-    for (let i = 1; i <= remainingCells; i++) {
-      cells.push({
-        date: new Date(year, month + 1, i),
-        isOtherMonth: true
-      })
-    }
-
-    return cells
+    return generateCalendarGrid(year, month)
   }, [calendarTargetDate])
 
   return {

@@ -2,7 +2,7 @@ import { getFormattedDateString, addDays } from '../utils/date'
 
 const DAYS_OF_WEEK = ['일', '월', '화', '수', '목', '금', '토']
 
-export default function WeeklyView({ selectedDate, todos, onDateSelect }) {
+export default function WeeklyView({ selectedDate, activeTodoCounts = {}, onDateSelect }) {
   
   // selectedDate(선택 날짜)를 정가운데(4번째, index 3)에 놓기 위해
   // selectedDate 기준 -3일 ~ +3일의 날짜 배열 생성
@@ -80,9 +80,7 @@ export default function WeeklyView({ selectedDate, todos, onDateSelect }) {
           const dayLabel = DAYS_OF_WEEK[day.getDay()]
 
           // 요일별 미완료 할 일 집계
-          const uncompletedCount = todos.filter(
-            (todo) => todo.date === dateStr && !todo.isCompleted
-          ).length
+          const uncompletedCount = activeTodoCounts[dateStr] || 0
 
           let btnClasses = 'weekly-day-btn'
           if (isSelected) btnClasses += ' selected'
