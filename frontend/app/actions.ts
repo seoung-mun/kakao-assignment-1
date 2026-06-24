@@ -4,10 +4,12 @@ import { Todo } from './types';
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
 
-export async function getTodos(filter?: string | null, search?: string | null): Promise<Todo[]> {
-  let query = '';
-  if (filter) query += `filter=${filter}&`;
-  if (search) query += `search=${search}&`;
+export async function getTodos(filter?: string | null, search?: string | null, date?: string | null): Promise<Todo[]> {
+  const params = new URLSearchParams();
+  if (filter) params.append('filter', filter);
+  if (search) params.append('search', search);
+  if (date) params.append('date', date);
+  const query = params.toString();
   
   try {
     // revalidate: 0 ensures we fetch fresh data on every request (for dynamic pages)

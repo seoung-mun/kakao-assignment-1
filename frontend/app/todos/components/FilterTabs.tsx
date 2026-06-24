@@ -18,9 +18,9 @@ export default function FilterTabs() {
   };
 
   const tabs = [
-    { id: 'all', label: 'All' },
-    { id: 'active', label: 'Active' },
-    { id: 'completed', label: 'Completed' }
+    { id: 'all', label: '전체' },
+    { id: 'active', label: '진행 중' },
+    { id: 'completed', label: '완료됨' }
   ];
 
   return (

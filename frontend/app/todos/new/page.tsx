@@ -1,5 +1,7 @@
 import TodoForm from './components/TodoForm';
 
+import { Suspense } from 'react';
+
 export default function NewTodoPage() {
   return (
     <main className="w-full max-w-lg min-h-[600px] bg-white rounded-xl shadow-lg p-6 flex flex-col gap-6 relative">
@@ -9,11 +11,13 @@ export default function NewTodoPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </a>
-        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">New Task</h1>
+        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">새로운 할 일</h1>
       </header>
       
       <div className="flex-1 mt-4">
-        <TodoForm />
+        <Suspense fallback={<div>Loading...</div>}>
+          <TodoForm />
+        </Suspense>
       </div>
     </main>
   );

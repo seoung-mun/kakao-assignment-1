@@ -1,63 +1,35 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useTransition } from 'react';
 import { Todo } from '@/app/types';
 import WeeklyCalendar from './WeeklyCalendar';
 import FilterTabs from './FilterTabs';
 import SearchBar from './SearchBar';
 import TodoList from './TodoList';
 import Link from 'next/link';
+import DateNavigator from './DateNavigator';
+import CalendarPopover from './CalendarPopover';
+import { useState } from 'react';
+import { useTodos } from '../hooks/useTodos';
 
 interface TodoAppProps {
   initialTodos: Todo[];
 }
 
 export default function TodoApp({ initialTodos }: TodoAppProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [isPending, startTransition] = useTransition();
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   
-  const handleToggle = async (id: number, completed: boolean) => {
-    try {
-      await fetch(`/api/todos/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ completed: !completed }),
-      });
-      startTransition(() => {
-        router.refresh();
-      });
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleDelete = async (id: number) => {
-    try {
-      await fetch(`/api/todos/${id}`, {
-        method: 'DELETE',
-      });
-      startTransition(() => {
-        router.refresh();
-      });
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  // 통계 계산
-  const total = initialTodos.length;
-  const completedCount = initialTodos.filter(t => t.completed).length;
-  const activeCount = total - completedCount;
-
+  const handleToggleCalendar = () => setIsCalendarOpen(!isCalendarOpen);
+  const handleCloseCalendar = () => setIsCalendarOpen(false);
+  
+  const { optimisticTodos, handleToggle, handleDelete, stats, isPending } = useTodos(initialTodos);
+  
   return (
     <>
       <header className="flex justify-between items-center pb-4 border-b border-gray-100">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Today</h1>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">오늘의 할 일</h1>
           <p className="text-sm text-gray-500 mt-1">
-            {activeCount} tasks pending, {completedCount} completed
+            진행 중 {stats.activeCount}개, 완료 {stats.completedCount}개
           </p>
         </div>
         <Link 
@@ -68,7 +40,12 @@ export default function TodoApp({ initialTodos }: TodoAppProps) {
         </Link>
       </header>
 
-      <WeeklyCalendar />
+      <div className="pt-4">
+        <DateNavigator isCalendarOpen={isCalendarOpen} onToggleCalendar={handleToggleCalendar}>
+          <CalendarPopover onClose={handleCloseCalendar} />
+        </DateNavigator>
+        <WeeklyCalendar />
+      </div>
       
       <div className="flex flex-col gap-3">
         <SearchBar />
@@ -77,7 +54,7 @@ export default function TodoApp({ initialTodos }: TodoAppProps) {
 
       <div className="flex-1 overflow-y-auto">
         <TodoList 
-          todos={initialTodos} 
+          todos={optimisticTodos} 
           onToggle={handleToggle} 
           onDelete={handleDelete} 
           isPending={isPending}

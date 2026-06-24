@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime
+from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime, func
 from sqlalchemy.orm import sessionmaker, Session, declarative_base
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime, timezone
@@ -67,10 +67,14 @@ def get_db():
 def get_todos(
     filter: Optional[str] = None,
     search: Optional[str] = None,
+    date: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
     query = db.query(TodoModel)
     
+    if date:
+        query = query.filter(func.date(TodoModel.date) == date)
+        
     if filter == "active":
         query = query.filter(TodoModel.completed == False)
     elif filter == "completed":
