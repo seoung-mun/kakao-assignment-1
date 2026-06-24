@@ -1,19 +1,27 @@
 'use client';
 
-import { Todo } from '@/app/types';
+import { memo } from 'react';
+import { useTodoStore } from '../store/useTodoStore';
+import { useTodoById } from '../store/useTodoSelectors';
 
 interface TodoItemProps {
-  todo: Todo;
-  onToggle: (id: number, completed: boolean) => void;
-  onDelete: (id: number) => void;
-  isPending: boolean;
+  id: number;
 }
 
-export default function TodoItem({ todo, onToggle, onDelete, isPending }: TodoItemProps) {
+const TodoItem = ({ id }: TodoItemProps) => {
+  const todo = useTodoById(id);
+  const toggleTodo = useTodoStore(state => state.toggleTodo);
+  const deleteTodo = useTodoStore(state => state.deleteTodo);
+  const pendingIds = useTodoStore(state => state.pendingIds);
+  
+  if (!todo) return null;
+
+  const isPending = pendingIds.includes(todo.id);
+
   return (
     <div className={`flex items-center gap-3 p-4 bg-white border border-gray-100 rounded-xl mb-3 shadow-sm transition-all hover:border-purple-200 hover:shadow-md ${isPending ? 'opacity-50 pointer-events-none' : ''}`}>
       <button 
-        onClick={() => onToggle(todo.id, todo.completed)}
+        onClick={() => toggleTodo(todo.id, todo.completed)}
         className={`w-6 h-6 rounded-full flex items-center justify-center border-2 transition-colors flex-shrink-0 ${
           todo.completed 
             ? 'bg-purple-600 border-purple-600' 
@@ -36,7 +44,7 @@ export default function TodoItem({ todo, onToggle, onDelete, isPending }: TodoIt
       </div>
 
       <button
-        onClick={() => onDelete(todo.id)}
+        onClick={() => deleteTodo(todo.id)}
         className="text-gray-400 hover:text-red-500 transition-colors p-1"
         aria-label="할 일 삭제"
       >
@@ -46,4 +54,6 @@ export default function TodoItem({ todo, onToggle, onDelete, isPending }: TodoIt
       </button>
     </div>
   );
-}
+};
+
+export default memo(TodoItem);

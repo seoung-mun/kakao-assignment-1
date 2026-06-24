@@ -8,28 +8,41 @@ import TodoList from './TodoList';
 import Link from 'next/link';
 import DateNavigator from './DateNavigator';
 import CalendarPopover from './CalendarPopover';
-import { useState } from 'react';
-import { useTodos } from '../hooks/useTodos';
+import { useEffect, useRef } from 'react';
+import { useTodoStore } from '../store/useTodoStore';
+import { Toaster } from 'react-hot-toast';
 
 interface TodoAppProps {
   initialTodos: Todo[];
 }
 
 export default function TodoApp({ initialTodos }: TodoAppProps) {
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const setInitialTodos = useTodoStore(state => state.setInitialTodos);
   
-  const handleToggleCalendar = () => setIsCalendarOpen(!isCalendarOpen);
-  const handleCloseCalendar = () => setIsCalendarOpen(false);
-  
-  const { optimisticTodos, handleToggle, handleDelete, stats, isPending } = useTodos(initialTodos);
-  
+  // Hydration: Server Data -> Zustand Store
+  const isInitialized = useRef(false);
+  if (!isInitialized.current) {
+    useTodoStore.getState().setInitialTodos(initialTodos);
+    isInitialized.current = true;
+  }
+
+  // Update store when initialTodos changes (e.g., URL navigation)
+  useEffect(() => {
+    setInitialTodos(initialTodos);
+  }, [initialTodos, setInitialTodos]);
+
+  const todos = useTodoStore(state => state.todos);
+  const activeCount = todos.filter(t => !t.completed).length;
+  const completedCount = todos.filter(t => t.completed).length;
+
   return (
     <>
+      <Toaster position="bottom-center" />
       <header className="flex justify-between items-center pb-4 border-b border-gray-100">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">오늘의 할 일</h1>
           <p className="text-sm text-gray-500 mt-1">
-            진행 중 {stats.activeCount}개, 완료 {stats.completedCount}개
+            진행 중 {activeCount}개, 완료 {completedCount}개
           </p>
         </div>
         <Link 
@@ -41,8 +54,8 @@ export default function TodoApp({ initialTodos }: TodoAppProps) {
       </header>
 
       <div className="pt-4">
-        <DateNavigator isCalendarOpen={isCalendarOpen} onToggleCalendar={handleToggleCalendar}>
-          <CalendarPopover onClose={handleCloseCalendar} />
+        <DateNavigator>
+          <CalendarPopover />
         </DateNavigator>
         <WeeklyCalendar />
       </div>
@@ -53,12 +66,7 @@ export default function TodoApp({ initialTodos }: TodoAppProps) {
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <TodoList 
-          todos={optimisticTodos} 
-          onToggle={handleToggle} 
-          onDelete={handleDelete} 
-          isPending={isPending}
-        />
+        <TodoList />
       </div>
     </>
   );

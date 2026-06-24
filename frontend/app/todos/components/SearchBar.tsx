@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export default function SearchBar() {
   const router = useRouter();
@@ -9,19 +10,17 @@ export default function SearchBar() {
   const initialSearch = searchParams.get('search') || '';
   const [searchTerm, setSearchTerm] = useState(initialSearch);
 
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      const params = new URLSearchParams(searchParams);
-      if (searchTerm) {
-        params.set('search', searchTerm);
-      } else {
-        params.delete('search');
-      }
-      router.push(`?${params.toString()}`);
-    }, 300);
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-    return () => clearTimeout(handler);
-  }, [searchTerm, router, searchParams]);
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+    if (debouncedSearchTerm) {
+      params.set('search', debouncedSearchTerm);
+    } else {
+      params.delete('search');
+    }
+    router.push(`?${params.toString()}`);
+  }, [debouncedSearchTerm, router]);
 
   return (
     <div className="relative">

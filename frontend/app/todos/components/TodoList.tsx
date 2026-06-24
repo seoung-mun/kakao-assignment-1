@@ -1,17 +1,12 @@
 'use client';
 
-import { Todo } from '@/app/types';
 import TodoItem from './TodoItem';
+import { useTodoIds } from '../store/useTodoSelectors';
 
-interface TodoListProps {
-  todos: Todo[];
-  onToggle: (id: number, completed: boolean) => void;
-  onDelete: (id: number) => void;
-  isPending: boolean;
-}
+export default function TodoList() {
+  const todoIds = useTodoIds();
 
-export default function TodoList({ todos, onToggle, onDelete, isPending }: TodoListProps) {
-  if (todos.length === 0) {
+  if (todoIds.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-48 text-gray-400">
         <svg className="w-12 h-12 mb-3 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -24,18 +19,10 @@ export default function TodoList({ todos, onToggle, onDelete, isPending }: TodoL
 
   return (
     <div className="mt-2">
-      {/* 
-        React에서 배열을 렌더링할 때 요소의 고유성을 식별하기 위해 key prop이 필수적입니다.
-        key가 없으면 React는 배열 요소의 순서를 기반으로 렌더링을 추적하여,
-        항목이 삭제되거나 순서가 바뀔 때 불필요한 DOM 업데이트가 발생하거나 상태 꼬임(버그)이 발생합니다.
-      */}
-      {todos.map(todo => (
+      {todoIds.map(id => (
         <TodoItem 
-          key={todo.id} 
-          todo={todo} 
-          onToggle={onToggle} 
-          onDelete={onDelete} 
-          isPending={isPending}
+          key={id} 
+          id={id} 
         />
       ))}
     </div>

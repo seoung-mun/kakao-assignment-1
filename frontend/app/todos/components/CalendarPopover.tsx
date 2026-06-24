@@ -4,14 +4,12 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import { useTodoStore } from '../store/useTodoStore';
 
-interface CalendarPopoverProps {
-  onClose: () => void;
-}
-
-export default function CalendarPopover({ onClose }: CalendarPopoverProps) {
+export default function CalendarPopover() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const setCalendarOpen = useTodoStore(state => state.setCalendarOpen);
   
   const dateParam = searchParams.get('date');
   const selectedDate = dateParam ? parseISO(dateParam) : new Date();
@@ -40,7 +38,7 @@ export default function CalendarPopover({ onClose }: CalendarPopoverProps) {
     const params = new URLSearchParams(searchParams);
     params.set('date', format(day, 'yyyy-MM-dd'));
     router.push(`?${params.toString()}`);
-    onClose();
+    setCalendarOpen(false);
   };
 
   const weekDays = ['일', '월', '화', '수', '목', '금', '토'];

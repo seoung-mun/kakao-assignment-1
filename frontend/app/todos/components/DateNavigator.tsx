@@ -4,10 +4,13 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { format, addDays, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { ReactNode } from 'react';
+import { useTodoStore } from '../store/useTodoStore';
 
-export default function DateNavigator({ children, isCalendarOpen, onToggleCalendar }: { children: ReactNode, isCalendarOpen: boolean, onToggleCalendar: () => void }) {
+export default function DateNavigator({ children }: { children: ReactNode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const isCalendarOpen = useTodoStore(state => state.isCalendarOpen);
+  const toggleCalendar = useTodoStore(state => state.toggleCalendar);
   
   const dateParam = searchParams.get('date');
   const selectedDate = dateParam ? parseISO(dateParam) : new Date();
@@ -51,7 +54,7 @@ export default function DateNavigator({ children, isCalendarOpen, onToggleCalend
         <div 
           className="flex items-center gap-2 cursor-pointer px-4 py-2 hover:bg-gray-100 rounded-md transition-colors"
           role="button" 
-          onClick={onToggleCalendar}
+          onClick={toggleCalendar}
         >
           <span className="text-base font-bold text-gray-800">{displayDateStr}</span>
           <span className="text-gray-400 text-xs">▼</span>
