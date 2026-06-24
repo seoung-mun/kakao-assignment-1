@@ -6,3 +6,9 @@ index1.html
 style1.css
 app1.js
 docs/
+# Python
+.venv/
+__pycache__/
+*.pyc
+.env.local
+todos.db
